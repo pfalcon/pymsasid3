@@ -40,14 +40,14 @@ class Buffer_hook (Hook_class) :
       #print (hex(self.pos) + " " + hex(ord(ret)))
       return ord(ret)
     else :
-      raise ("end of input ", self.pos, self.base_address)   
+      print ("end of input " + self.pos + " " + self.base_address)
     
   def seek (self, add):
     pos = add - self.base_address
     if pos >= 0 and pos <= len (self.source):
       self.pos = pos
     else :
-      raise ("seek out of bounds")   
+      print ("seek out of bounds " + add)   
 
 class PEString_hook (Buffer_hook):
   def __init__ (self, source, base_address):
@@ -69,7 +69,7 @@ class PEString_hook (Buffer_hook):
     if pos >= 0 and pos <= len (self.source):
       self.pos = pos
     else :
-      raise ("seek out of bounds",pos, add, self.base_address)   
+      print ("seek out of bounds " + add)   
 
   def symbols (self):
     ret = {}
@@ -110,7 +110,7 @@ class Hexstring_hook (Hook_class):
   def hook (self):
     ret = -1
     if self.pos < len(self.source):
-      ret = fromhex(self.source[self.pos])
+      ret = int (self.source[self.pos], 16)
       self.pos += 1
     return ret
 
@@ -119,7 +119,7 @@ class Hexstring_hook (Hook_class):
     if pos >= 0 and pos <= len (self.source):
       self.pos = pos
     else :
-      raise ("seek out of bounds")   
+      print ("seek out of bounds " + add)   
 
 # =============================================================================
 # file_hook - Hook for FILE inputs.
@@ -143,7 +143,7 @@ class File_hook (Hook_class) :
     if pos >= 0 :
       source.seek (pos)
     else :
-      raise ("seek out of bounds")   
+      print ("seek out of bounds " + add)   
 
 class Input :
  # =============================================================================
@@ -204,7 +204,7 @@ class Input :
 #=============================================================================
   def read (self, n):
     if n < 8 :
-      raise ("minimal size of addressable memory is 8 bits")
+      print ("minimal size of addressable memory is 8 bits (" + n +")")
     elif n == 8 :
       return self.next ()
     else :

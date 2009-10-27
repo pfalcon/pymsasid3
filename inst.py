@@ -133,6 +133,7 @@ class Inst :
     self.add = add
     self.pc = 0
     self.syntax = syntax
+    self.my_syntax = None
     self.itab_entry = ie_invalid
     self.operator = "invalid"
     self.operand = [] 
@@ -149,7 +150,9 @@ class Inst :
       op.clear ()
  
   def __str__ (self) :
-    return self.syntax(self)
+    if (self.my_syntax == None):
+      self.my_syntax = self.syntax(self)
+    return self.my_syntax
 
   def __repr__ (self) :
     return str (self)

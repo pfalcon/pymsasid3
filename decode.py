@@ -29,7 +29,7 @@ def get_prefixes (u, inst) :
         curr = u.input.current ()
 
         # rex prefixes in 64bit mode
-        if u.dis_mode == 64 and (curr | 0xF0) == 0x40 :
+        if u.dis_mode == 64 and (curr & 0xF0) == 0x40 :
             inst.pfx.rex = curr
         else:
             if curr == 0x2E :
@@ -98,6 +98,8 @@ def get_prefixes (u, inst) :
             inst.opr_mode = 64 
         elif inst.pfx.opr:
             inst.opr_mode = 16
+        elif (P_DEF64(inst.itab_entry.prefix)):
+            inst.opr_mode = 64
         else:
             inst.opr_mode = 32
         if inst.pfx.adr:
@@ -188,9 +190,6 @@ def search_itab (u, inst):
                     u.input.next () 
                     if u.input.error: 
                         return -1
-                inst.itab_entry = e
-                inst.operator = inst.itab_entry.operator
-                return 0
             inst.itab_entry = e
             inst.operator = inst.itab_entry.operator
             return 0
@@ -284,7 +283,7 @@ def resolve_operand_size (u, inst, s):
             return inst.opr_mode
     elif s ==  SZ_RDQ:
         if u.dis_mode == 64:
-            return 32
+            return 64
         else :
             return 32
     else :
@@ -363,7 +362,7 @@ def resolve_gpr64(u, inst, gpr_op):
       index = gpr_op - OP_rAX
   if inst.opr_mode == 16 :
       return GPR[16][index]
-  elif u.dis_mode == 32 or (inst.opr_mode == 32 and REX_W(inst.pfx.rex) == 0) :
+  elif u.dis_mode == 32 and not (inst.opr_mode == 64 or REX_W(inst.pfx.rex) == 0) :
       return GPR[32][index]
   return GPR[64][index]
 
