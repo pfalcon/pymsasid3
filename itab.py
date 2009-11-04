@@ -4,19 +4,15 @@
 from inst import itab_entry
 from operand import *
 
-
 ITAB__VENDOR_INDX__AMD = 0
 ITAB__VENDOR_INDX__INTEL = 1
-
 
 ITAB__MODE_INDX__16 = 0
 ITAB__MODE_INDX__32 = 1
 ITAB__MODE_INDX__64 = 2
 
-
 ITAB__MOD_INDX__NOT_11 = 0
 ITAB__MOD_INDX__11 = 1
-
 
 ITAB__0F = 0
 ITAB__0F__OP_00__REG = 1
@@ -137,7 +133,6 @@ ITAB__PFX_SSEF2__0F = 115
 ITAB__PFX_SSEF3__0F = 116
 ITAB__PFX_SSEF3__0F__OP_C7__REG = 117
 ITAB__PFX_SSEF3__0F__OP_C7__REG__OP_07__VENDOR = 118
-
 
 operator = [
   '3dnow',

@@ -5,7 +5,9 @@
 # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
 # -----------------------------------------------------------------------------
 
-from input import BufferHook, Input
+# this is intended, we need every public class in input to be in pymsasid's namespace
+from input import *
+
 from inst import Inst
 from common import DecodeException, VENDOR_INTEL, VENDOR_AMD
 import decode as dec
@@ -36,13 +38,14 @@ class Pymsasid:
             return Inst()
             
     def set_vendor(self, vendor):
-        if vendor == VENDOR_INTEL:
+        if vendor in [VENDOR_INTEL, VENDOR_AMD]:
             self.vendor = vendor
         else:
-            self.vendor = VENDOR_AMD
+            raise Exception('call to Pymsasid.set_vendor() with unknown vendor:' + str(vendor))
             
     def seek(self, add):
         self.input.hook.seek(add)
         self.pc = add
 
-Pymsasid.decode = dec.decode
+    def decode(self):
+        return dec.decode(self)

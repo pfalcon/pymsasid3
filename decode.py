@@ -5,10 +5,12 @@
 # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
 # -----------------------------------------------------------------------------
 
-from common import DecodeException
-from operand import *
+from common import DecodeException, VENDOR_INTEL, VENDOR_AMD
+from inst import Inst, Operand, Ptr
+
+# this is intended: hundreds of constants used
 from itab import *
-from inst import *
+from operand import *
 
 # Extracts instruction prefixes.
 def get_prefixes(u, inst):
@@ -29,7 +31,7 @@ def get_prefixes(u, inst):
         curr = u.input.current()
 
         # rex prefixes in 64bit mode
-        if u.dis_mode == 64 and(curr & 0xF0) == 0x40:
+        if u.dis_mode == 64 and (curr & 0xF0) == 0x40:
             inst.pfx.rex = curr
         else:
             if curr == 0x2E:
@@ -189,8 +191,8 @@ def search_itab(u, inst):
                 if did_peek:
                     u.input.next() 
                     if u.input.error:
-                        raise DecodeException('erreur') 
-                        return -1
+                        raise DecodeException('error') 
+                        #return -1
             inst.itab_entry = e
             inst.operator = inst.itab_entry.operator
             return 0
@@ -206,15 +208,15 @@ def search_itab(u, inst):
             did_peek = 1
             index    = MODRM_MOD(peek)
             if index == 3:
-               index = ITAB__MOD_INDX__11
+                index = ITAB__MOD_INDX__11
             else:
-               index = ITAB__MOD_INDX__NOT_11
+                index = ITAB__MOD_INDX__NOT_11
         elif e.operator ==  'grp_rm':
-            curr     = u.input.next()
+            curr = u.input.next()
             did_peek = 0
             if u.error:
                 return -1
-            index    = MODRM_RM(curr)
+            index = MODRM_RM(curr)
     
         elif e.operator ==  'grp_x87':
             curr     = u.input.next()
@@ -292,264 +294,246 @@ def resolve_operand_size(u, inst, s):
 
 
 def resolve_operator(u, inst):
-  # far/near flags 
-  inst.branch_dist = None
-  # readjust operand sizes for call/jmp instrcutions 
-  if inst.operator == 'call' or inst.operator == 'jmp':
-    # WP: 16bit pointer 
-    if inst.operand[0].size == SZ_WP:
-        inst.operand[0].size = 16
-        inst.branch_dist = 'far'
-    # DP: 32bit pointer
-    elif inst.operand[0].size == SZ_DP:
-        inst.operand[0].size = 32
-        inst.branch_dist = 'far'
-    elif  inst.operand[0].size == 8:
-        inst.branch_dist = 'near'
-  # resolve 3dnow weirdness 
-  elif inst.operator == '3dnow': 
-    inst.operator = itab_list[ITAB__3DNOW][u.input.current()].operator
-  # SWAPGS is only valid in 64bits mode
-  if inst.operator == 'swapgs' and u.dis_mode != 64:
-    u.error = 1
-    return -1
-  return 0
+    # far/near flags 
+    inst.branch_dist = None
+    # readjust operand sizes for call/jmp instrcutions 
+    if inst.operator == 'call' or inst.operator == 'jmp':
+        # WP: 16bit pointer 
+        if inst.operand[0].size == SZ_WP:
+            inst.operand[0].size = 16
+            inst.branch_dist = 'far'
+        # DP: 32bit pointer
+        elif inst.operand[0].size == SZ_DP:
+            inst.operand[0].size = 32
+            inst.branch_dist = 'far'
+        elif inst.operand[0].size == 8:
+            inst.branch_dist = 'near'
+    # resolve 3dnow weirdness 
+    elif inst.operator == '3dnow': 
+        inst.operator = itab_list[ITAB__3DNOW][u.input.current()].operator
+    # SWAPGS is only valid in 64bits mode
+    if inst.operator == 'swapgs' and u.dis_mode != 64:
+        u.error = 1
+        return -1
+    return 0
 
-
-# -----------------------------------------------------------------------------
-# decode_a()- Decodes operands of the type seg:offset
-# -----------------------------------------------------------------------------
 def decode_a(u, inst, op):
-  if inst.opr_mode == 16:  
-    # seg16:off16 
-    op.type = 'OP_PTR'
-    op.size = 32
-    op.lval = Ptr(u.input.read(16), u.input.read(16))
-  else:
-    # seg16:off32 
-    op.type = 'OP_PTR'
-    op.size = 48
-    op.lval = Ptr(u.input.read(32), u.input.read(16))
+    """Decodes operands of the type seg:offset."""
+    if inst.opr_mode == 16:  
+        # seg16:off16 
+        op.type = 'OP_PTR'
+        op.size = 32
+        op.lval = Ptr(u.input.read(16), u.input.read(16))
+    else:
+        # seg16:off32 
+        op.type = 'OP_PTR'
+        op.size = 48
+        op.lval = Ptr(u.input.read(32), u.input.read(16))
 
-# -----------------------------------------------------------------------------
-# decode_gpr() - Returns decoded General Purpose Register 
-# -----------------------------------------------------------------------------
 def decode_gpr(u, inst, s, rm):
-  s = resolve_operand_size(u, inst, s)
-        
-  if s == 64:
-      return GPR[64][rm]
-  elif s == SZ_DP or s == 32:
-      return GPR[32][rm]
-  elif s == SZ_WP or s == 16:
-      return GPR[16][rm]
-  elif s ==  8:
-      if u.dis_mode == 64 and inst.pfx.rex:
-          if rm >= 4:
-              return GPR[8][rm+4]
-          return GPR[8][rm]
-      else: 
-          return GPR[8][rm]
-  else:
-      return None
+    """Returns decoded General Purpose Register."""
+    s = resolve_operand_size(u, inst, s)
+          
+    if s == 64:
+        return GPR[64][rm]
+    elif s == SZ_DP or s == 32:
+        return GPR[32][rm]
+    elif s == SZ_WP or s == 16:
+        return GPR[16][rm]
+    elif s ==  8:
+        if u.dis_mode == 64 and inst.pfx.rex:
+            if rm >= 4:
+                return GPR[8][rm+4]
+            return GPR[8][rm]
+        else: 
+            return GPR[8][rm]
+    else:
+        return None
 
-# -----------------------------------------------------------------------------
-# resolve_gpr64() - 64bit General Purpose Register-Selection. 
-# -----------------------------------------------------------------------------
 def resolve_gpr64(u, inst, gpr_op):
-  if gpr_op in  range(OP_rAXr8, OP_rDIr15) :
-      index =(gpr_op - OP_rAXr8) |(REX_B(inst.pfx.rex) << 3)          
-  else:
-      index = gpr_op - OP_rAX
-  if inst.opr_mode == 16:
-      return GPR[16][index]
-  elif u.dis_mode == 32 and not(inst.opr_mode == 64 or REX_W(inst.pfx.rex) == 0):
-      return GPR[32][index]
-  return GPR[64][index]
+    """64bit General Purpose Register-Selection."""
+    if gpr_op in  range(OP_rAXr8, OP_rDIr15) :
+        index = (gpr_op - OP_rAXr8) |(REX_B(inst.pfx.rex) << 3)          
+    else:
+        index = gpr_op - OP_rAX
+    if inst.opr_mode == 16:
+        return GPR[16][index]
+    elif u.dis_mode == 32 and not(inst.opr_mode == 64 or REX_W(inst.pfx.rex) == 0):
+        return GPR[32][index]
+    return GPR[64][index]
 
-# -----------------------------------------------------------------------------
-# resolve_gpr32() - 32bit General Purpose Register-Selection. 
-# -----------------------------------------------------------------------------
 def resolve_gpr32(u, inst, gpr_op):
+    """32bit General Purpose Register-Selection."""
     index = gpr_op - OP_eAX
     if(inst.opr_mode == 16):
         return GPR[16][index]
     return GPR[32][index]
 
-# -----------------------------------------------------------------------------
-# resolve_reg() - Resolves the register type 
-# -----------------------------------------------------------------------------
-def resolve_reg(u, inst, type, i):
-    return GPR[type][i]
+def resolve_reg(regtype, i):
+    """Resolves the register type."""
+    return GPR[regtype][i]
 
-# -----------------------------------------------------------------------------
-# decode_imm() - Decodes Immediate values.
-# -----------------------------------------------------------------------------
 def decode_imm(u, inst, s, op):
+    """Decodes Immediate values."""
     op.size = resolve_operand_size(u, inst, s)
     op.type = 'OP_IMM'
     op.lval = u.input.read(op.size) 
 
-# -----------------------------------------------------------------------------
-# decode_modrm() - Decodes ModRM Byte
-# -----------------------------------------------------------------------------
 def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
-  u.input.next()
+    """Decodes ModRM Byte."""
+    u.input.next()
 
-  # get mod, r/m and reg fields
-  mod = MODRM_MOD(u.input.current())
-  rm  =(REX_B(inst.pfx.rex) << 3) | MODRM_RM(u.input.current())
-  reg =(REX_R(inst.pfx.rex) << 3) | MODRM_REG(u.input.current())
+    # get mod, r/m and reg fields
+    mod = MODRM_MOD(u.input.current())
+    rm  = (REX_B(inst.pfx.rex) << 3) | MODRM_RM(u.input.current())
+    reg = (REX_R(inst.pfx.rex) << 3) | MODRM_REG(u.input.current())
 
-  op.size = resolve_operand_size(u, inst, s)
+    op.size = resolve_operand_size(u, inst, s)
 
-  # if mod is 11b, then the m specifies a gpr/mmx/sse/control/debug 
-  if mod == 3:
-    op.type = 'OP_REG'
-    if rm_type ==  'T_GPR':
-        op.base = decode_gpr(u, inst, op.size, rm)
-    else:   
-        op.base = resolve_reg(u, inst, rm_type,(REX_B(inst.pfx.rex) << 3) |(rm&7))
-  # else its memory addressing 
-  else: 
-    op.type = 'OP_MEM'
-    op.seg = inst.pfx.seg
-    # 64bit addressing 
-    if inst.adr_mode == 64:
+    # if mod is 11b, then the m specifies a gpr/mmx/sse/control/debug 
+    if mod == 3:
+        op.type = 'OP_REG'
+        if rm_type ==  'T_GPR':
+            op.base = decode_gpr(u, inst, op.size, rm)
+        else:   
+            op.base = resolve_reg(u, inst, rm_type, (REX_B(inst.pfx.rex) << 3) |(rm&7))
 
-        op.base = GPR[64][rm]
+    # else its memory addressing 
+    else: 
+        op.type = 'OP_MEM'
+        op.seg = inst.pfx.seg
+        # 64bit addressing 
+        if inst.adr_mode == 64:
 
-        # get offset type
-        if mod == 1:
-            op.offset = 8
-        elif mod == 2:
-            op.offset = 32
-        elif mod == 0 and(rm & 7) == 5:          
-            op.base = 'rip'
-            op.offset = 32
+            op.base = GPR[64][rm]
+
+            # get offset type
+            if mod == 1:
+                op.offset = 8
+            elif mod == 2:
+                op.offset = 32
+            elif mod == 0 and(rm & 7) == 5:          
+                op.base = 'rip'
+                op.offset = 32
+            else:
+                op.offset = 0
+
+            # Scale-Index-Base(SIB)
+            if rm & 7 == 4:
+                u.input.next()
+                
+                op.scale = (1 << SIB_S(u.input.current())) & ~1
+                op.index = GPR[64][(SIB_I(u.input.current()) |(REX_X(inst.pfx.rex) << 3))]
+                op.base  = GPR[64][(SIB_B(u.input.current()) |(REX_B(inst.pfx.rex) << 3))]
+
+                # special conditions for base reference
+                if op.index == 'rsp':
+                    op.index = None
+                    op.scale = 0
+
+                if op.base == 'rbp' or op.base == 'r13':
+                    if mod == 0: 
+                        op.base = None
+                    elif mod == 1:
+                        op.offset = 8
+                    else:
+                        op.offset = 32
+
+        # 32-Bit addressing mode 
+        elif inst.adr_mode == 32:
+
+            # get base 
+            op.base = GPR[16][rm]
+
+            # get offset type 
+            if mod == 1:
+                op.offset = 8
+            elif mod == 2:
+                op.offset = 32
+            elif mod == 0 and rm == 5:
+                op.base = None
+                op.offset = 32
+            else:
+                op.offset = 0
+
+            # Scale-Index-Base(SIB)
+            if(rm & 7) == 4:
+                u.input.next()
+
+                op.scale = (1 << SIB_S(u.input.current())) & ~1
+                op.index = GPR[16][SIB_I(u.input.current()) |(REX_X(inst.pfx.rex) << 3)]
+                op.base  = GPR[16][SIB_B(u.input.current()) |(REX_B(inst.pfx.rex) << 3)]
+
+                if op.index == 'esp':
+                    op.index = None
+                    op.scale = 0
+
+                # special condition for base reference 
+                if op.base == 'ebp':
+                    if mod == 0:
+                        op.base = None
+                    elif mod == 1:
+                        op.offset = 8
+                    else:
+                        op.offset = 32
+
+        # 16bit addressing mode 
         else:
-            op.offset = 0
+            if rm == 0: 
+                op.base = 'bx'
+                op.index = 'si'
+            elif rm == 1: 
+                op.base = 'bx'
+                op.index = 'di'
+            elif rm == 2: 
+                op.base = 'bp'
+                op.index = 'si'
+            elif rm == 3: 
+                op.base = 'bp'
+                op.index = 'di'
+            elif rm == 4: 
+                op.base = 'si'
+            elif rm == 5: 
+                op.base = 'di'
+            elif rm == 6: 
+                op.base = 'bp'
+            elif rm == 7: 
+                op.base = 'bx'
+                
+            if mod == 0 and rm == 6:
+                op.offset = 16
+                op.base = None
+            elif mod == 1:
+                op.offset = 8
+            elif mod == 2: 
+                op.offset = 16
 
-        # Scale-Index-Base(SIB)
-        if rm & 7 == 4:
-            u.input.next()
-            
-            op.scale =(1 << SIB_S(u.input.current())) & ~1
-            op.index = GPR[64][(SIB_I(u.input.current()) |(REX_X(inst.pfx.rex) << 3))]
-            op.base  = GPR[64][(SIB_B(u.input.current()) |(REX_B(inst.pfx.rex) << 3))]
+    # extract offset, if any 
+    if op.offset in [8, 16, 32, 64]: 
+        op.lval  = u.input.read(op.offset)
+        bound = pow(2, op.offset - 1)
+        if op.lval > bound:
+            op.lval = -(((2 * bound) - op.lval) % bound)
 
-            # special conditions for base reference
-            if op.index == 'rsp':
-                op.index = None
-                op.scale = 0
-
-            if op.base == 'rbp' or op.base == 'r13':
-                if mod == 0: 
-                    op.base = None
-                elif mod == 1:
-                    op.offset = 8
-                else:
-                    op.offset = 32
-
-    # 32-Bit addressing mode 
-    elif inst.adr_mode == 32:
-
-        # get base 
-        op.base = GPR[16][rm]
-
-        # get offset type 
-        if mod == 1:
-            op.offset = 8
-        elif mod == 2:
-            op.offset = 32
-        elif mod == 0 and rm == 5:
-            op.base = None
-            op.offset = 32
+    # resolve register encoded in reg field
+    if opreg:
+        opreg.type = 'OP_REG'
+        opreg.size = resolve_operand_size(u, inst, reg_size)
+        if reg_type == 'T_GPR': 
+            opreg.base = decode_gpr(u, inst, opreg.size, reg)
         else:
-            op.offset = 0
+            opreg.base = resolve_reg(u, inst, reg_type, reg)
 
-        # Scale-Index-Base(SIB)
-        if(rm & 7) == 4:
-            u.input.next()
-
-            op.scale =(1 << SIB_S(u.input.current())) & ~1
-            op.index = GPR[16][SIB_I(u.input.current()) |(REX_X(inst.pfx.rex) << 3)]
-            op.base  = GPR[16][SIB_B(u.input.current()) |(REX_B(inst.pfx.rex) << 3)]
-
-            if op.index == 'esp':
-                op.index = None
-                op.scale = 0
-
-            # special condition for base reference 
-            if op.base == 'ebp':
-                if mod == 0:
-                    op.base = None
-                elif mod == 1:
-                    op.offset = 8
-                else:
-                    op.offset = 32
-
-    # 16bit addressing mode 
-    else:
-        if rm == 0: 
-            op.base = 'bx'
-            op.index = 'si'
-        elif rm == 1: 
-            op.base = 'bx'
-            op.index = 'di'
-        elif rm == 2: 
-            op.base = 'bp'
-            op.index = 'si'
-        elif rm == 3: 
-            op.base = 'bp'
-            op.index = 'di'
-        elif rm == 4: 
-            op.base = 'si'
-        elif rm == 5: 
-            op.base = 'di'
-        elif rm == 6: 
-            op.base = 'bp'
-        elif rm == 7: 
-            op.base = 'bx'
-            
-        if mod == 0 and rm == 6:
-            op.offset = 16
-            op.base = None
-        elif mod == 1:
-            op.offset = 8
-        elif mod == 2: 
-            op.offset = 16
-  # extract offset, if any 
-  if op.offset in [8, 16, 32, 64]: 
-      op.lval  = u.input.read(op.offset)
-      bound = pow(2, op.offset - 1)
-      if op.lval > bound:
-          op.lval = -(((2 * bound) - op.lval) % bound)
-
-  # resolve register encoded in reg field
-  if opreg:
-    opreg.type = 'OP_REG'
-    opreg.size = resolve_operand_size(u, inst, reg_size)
-    if reg_type == 'T_GPR': 
-        opreg.base = decode_gpr(u, inst, opreg.size, reg)
-    else:
-        opreg.base = resolve_reg(u, inst, reg_type, reg)
-
-# -----------------------------------------------------------------------------
-# decode_o() - Decodes offset
-# -----------------------------------------------------------------------------
 def decode_o(u, inst, s, op):
+    """Decodes offset."""
     op.seg = inst.pfx.seg
     op.offset = inst.adr_mode 
     op.lval = u.input.read(inst.adr_mode) 
     op.type = 'OP_MEM'
     op.size = resolve_operand_size(u, inst, s)
 
-# -----------------------------------------------------------------------------
-# disasm_operands() - Disassembles Operands.
-# -----------------------------------------------------------------------------
 def disasm_operands(u, inst):
-
+    """Disassembles Operands."""
     # get type
     def get_mopt(x): return x.type
     mopt = map(get_mopt, inst.itab_entry.operand)
@@ -657,7 +641,7 @@ def disasm_operands(u, inst):
 
     elif mopt[0] in [OP_ALr8b, OP_CLr9b, OP_DLr10b, OP_BLr11b,
                    OP_AHr12b, OP_CHr13b, OP_DHr14b, OP_BHr15b]:
-        gpr =(mopt[0] - OP_ALr8b +(REX_B(inst.pfx.rex) << 3))
+        gpr = (mopt[0] - OP_ALr8b +(REX_B(inst.pfx.rex) << 3))
         if gpr in ['ah',	'ch',	'dh',	'bh',
                    'spl',	'bpl',	'sil',	'dil',
                    'r8b',	'r9b',	'r10b',	'r11b',
@@ -857,67 +841,63 @@ def disasm_operands(u, inst):
 
 
 def do_mode(u, inst):
-  # if in error state, bail out 
-  if u.error:
-      return -1 
+    # if in error state, bail out 
+    if u.error:
+        return -1 
 
-  # propagate perfix effects 
-  if u.dis_mode == 64:  # set 64bit-mode flags
+    # propagate perfix effects 
+    if u.dis_mode == 64:  # set 64bit-mode flags
+        # Check validity of  instruction m64 
+        if P_INV64(inst.itab_entry.prefix):
+            u.error = 1
+            return -1
 
-    # Check validity of  instruction m64 
-    if P_INV64(inst.itab_entry.prefix):
-        u.error = 1
-        return -1
+        # effective rex prefix is the  effective mask for the 
+        # instruction hard-coded in the opcode map.
+        inst.pfx.rex = ((inst.pfx.rex & 0x40) 
+                        |(inst.pfx.rex & REX_PFX_MASK(inst.itab_entry.prefix)))
 
-    # effective rex prefix is the  effective mask for the 
-    # instruction hard-coded in the opcode map.
-    inst.pfx.rex =((inst.pfx.rex & 0x40) 
-                 |(inst.pfx.rex & REX_PFX_MASK(inst.itab_entry.prefix)))
+        # calculate effective operand size 
+        if REX_W(inst.pfx.rex) or P_DEF64(inst.itab_entry.prefix):
+            inst.opr_mode = 64
+        elif inst.pfx.opr:
+            inst.opr_mode = 16
+        else:
+            inst.opr_mode = 32
 
-    # calculate effective operand size 
-    if REX_W(inst.pfx.rex) or P_DEF64(inst.itab_entry.prefix):
-        inst.opr_mode = 64
-    elif inst.pfx.opr:
-        inst.opr_mode = 16
-    else:
-        inst.opr_mode = 32
+        # calculate effective address size
+        if inst.pfx.adr:
+            inst.adr_mode = 32 
+        else:
+            inst.adr_mode = 64
+    elif u.dis_mode == 32: # set 32bit-mode flags 
+        if inst.pfx.opr:
+            inst.opr_mode = 16 
+        else:
+            inst.opr_mode = 32
+        if inst.pfx.adr:
+            inst.adr_mode = 16 
+        else: 
+            inst.adr_mode = 32
+    elif u.dis_mode == 16: # set 16bit-mode flags 
+        if inst.pfx.opr:
+            inst.opr_mode = 32 
+        else: 
+            inst.opr_mode = 16
+        if inst.pfx.adr:
+            inst.adr_mode = 32 
+        else: 
+            inst.adr_mode = 16
+    # These flags determine which operand to apply the operand size
+    # cast to.
+    cast = [P_C0, P_C1, P_C2]
+    for i in range(len(inst.operand)):
+        inst.operand[i].cast = cast[i](inst.itab_entry.prefix)
 
-    # calculate effective address size
-    
-    if inst.pfx.adr:
-        inst.adr_mode = 32 
-    else:
-        inst.adr_mode = 64
-  elif u.dis_mode == 32: # set 32bit-mode flags 
-    if inst.pfx.opr:
-        inst.opr_mode = 16 
-    else:
-        inst.opr_mode = 32
-    if inst.pfx.adr:
-        inst.adr_mode = 16 
-    else: 
-        inst.adr_mode = 32
-  elif u.dis_mode == 16: # set 16bit-mode flags 
-      if inst.pfx.opr:
-          inst.opr_mode = 32 
-      else: 
-          inst.opr_mode = 16
-      if inst.pfx.adr:
-          inst.adr_mode = 32 
-      else: 
-          inst.adr_mode = 16
-  # These flags determine which operand to apply the operand size
-  # cast to.
-  cast = [P_C0, P_C1, P_C2]
-  for i in range(len(inst.operand)):
-      inst.operand[i].cast = cast[i](inst.itab_entry.prefix)
+    return 0
 
-  return 0
-
-# =============================================================================
-# decode() - Instruction decoder. Returns the number of bytes decoded.
-# =============================================================================
 def decode(self):
+    """Instruction decoder. Returns the number of bytes decoded."""
     inst = Inst(add = self.pc, mode = self.dis_mode, syntax = self.syntax)
     self.error = 0
     self.input.start()
