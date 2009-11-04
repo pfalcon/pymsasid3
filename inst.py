@@ -45,9 +45,6 @@ class Ptr:
 
 class Operand:
     def __init__(self):
-        self.clear();
-
-    def clear(self):
         self.seg = None
         self.type = None
         self.size = 0
@@ -60,6 +57,9 @@ class Operand:
         self.pc = 0
         self.value = None
         self.ref = None
+
+    def clear(self):
+        self.__init__()
         
     def compute_sign(self, lval):
         if(lval < 0):
@@ -119,7 +119,7 @@ class Operand:
         return value
     
     def __repr__(self):
-        return self.str()
+        return self.__str__()
 
 class Inst:
     def __init__(self, add = 0, mode = 16, syntax = intel_syntax):
@@ -181,8 +181,8 @@ class Inst:
                 or self.operand[0].type == 'OP_IMM'):
             ret = self.add + self.size + self.operand[0].lval
         elif self.operand[0].type == 'OP_PTR':
-            ret =((self.operand[0].lval.seg << 4) 
-                            + self.operand[0].lval.off)
+            ret = ((self.operand[0].lval.seg << 4) 
+                   + self.operand[0].lval.off)
         elif self.operand[0].type == 'OP_MEM':
             ret = self.operand[0].value
         else:
