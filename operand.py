@@ -9,97 +9,97 @@ MAX_INSN_LENGTH = 15
 NULL = 0
 
 GPR = { 
- "T_NONE": [
+ 'T_NONE': [
         None,
         ],
   # 8 bit GPRs 
   8:[
-        "al",	"cl",	"dl",	"bl",
-        "ah",	"ch",	"dh",	"bh",
-        "spl",	"bpl",	"sil",	"dil",
-        "al",	"cl",	"dl",	"bl",
-        "ah",	"ch",	"dh",	"bh",
-#        "r8b",	"r9b",	"r10b",	"r11b",
-#        "r12b",	"r13b",	"r14b",	"r15b",
+        'al',	'cl',	'dl',	'bl',
+        'ah',	'ch',	'dh',	'bh',
+        'spl',	'bpl',	'sil',	'dil',
+        'al',	'cl',	'dl',	'bl',
+        'ah',	'ch',	'dh',	'bh',
+#        'r8b',	'r9b',	'r10b',	'r11b',
+#        'r12b',	'r13b',	'r14b',	'r15b',
         ],
   # 16 bit GPRs 
   16:[
-        "ax",	"cx",	"dx",	"bx",
-        "sp",	"bp",	"si",	"di",
-        "ax",	"cx",	"dx",	"bx",
-        "sp",	"bp",	"si",	"di",
-#        "r8w",	"r9w",	"r10w",	"r11w",
-#        "r12w",	"r13w",	"r14w",	"r15w",
+        'ax',	'cx',	'dx',	'bx',
+        'sp',	'bp',	'si',	'di',
+        'ax',	'cx',	'dx',	'bx',
+        'sp',	'bp',	'si',	'di',
+#        'r8w',	'r9w',	'r10w',	'r11w',
+#        'r12w',	'r13w',	'r14w',	'r15w',
 	],
   # 32 bit GPRs 
   32:[
-        "eax",	"ecx",	"edx",	"ebx",
-        "esp",	"ebp",	"esi",	"edi",
-        "eax",	"ecx",	"edx",	"ebx",
-        "esp",	"ebp",	"esi",	"edi",
-#        "r8d",	"r9d",	"r10d",	"r11d",
-#        "r12d",	"r13d",	"r14d",	"r15d",
+        'eax',	'ecx',	'edx',	'ebx',
+        'esp',	'ebp',	'esi',	'edi',
+        'eax',	'ecx',	'edx',	'ebx',
+        'esp',	'ebp',	'esi',	'edi',
+#        'r8d',	'r9d',	'r10d',	'r11d',
+#        'r12d',	'r13d',	'r14d',	'r15d',
 	],
   # 64 bit GPRs
   64:[
-        "rax",	"rcx",	"rdx",	"rbx",
-        "rsp",	"rbp",	"rsi",	"rdi",
-        "rax",	"rcx",	"rdx",	"rbx",
-        "rsp",	"rbp",	"rsi",	"rdi",
-#        "r8",	"r9",	"r10",	"r11",
-#        "r12",	"r13",	"r14",	"r15",
+        'rax',	'rcx',	'rdx',	'rbx',
+        'rsp',	'rbp',	'rsi',	'rdi',
+        'rax',	'rcx',	'rdx',	'rbx',
+        'rsp',	'rbp',	'rsi',	'rdi',
+#        'r8',	'r9',	'r10',	'r11',
+#        'r12',	'r13',	'r14',	'r15',
         ],
   # segment registers 
-  "T_SEG":[
-        "es",	"cs",	"ss",	"ds",
-        "fs",	"gs",	
+  'T_SEG':[
+        'es',	'cs',	'ss',	'ds',
+        'fs',	'gs',	
         ],
 
   # control registers
-  "T_CRG":[
-        "cr0",	"cr1",	"cr2",	"cr3",
-        "cr4",	"cr5",	"cr6",	"cr7",
-        "cr8",	"cr9",	"cr10",	"cr11",
-        "cr12",	"cr13",	"cr14",	"cr15",
+  'T_CRG':[
+        'cr0',	'cr1',	'cr2',	'cr3',
+        'cr4',	'cr5',	'cr6',	'cr7',
+        'cr8',	'cr9',	'cr10',	'cr11',
+        'cr12',	'cr13',	'cr14',	'cr15',
         ],
 	
   # debug registers 
-  "T_DBG":[
-        "dr0",	"dr1",	"dr2",	"dr3",
-        "dr4",	"dr5",	"dr6",	"dr7",
-        "dr8",	"dr9",	"dr10",	"dr11",
-        "dr12",	"dr13",	"dr14",	"dr15",
+  'T_DBG':[
+        'dr0',	'dr1',	'dr2',	'dr3',
+        'dr4',	'dr5',	'dr6',	'dr7',
+        'dr8',	'dr9',	'dr10',	'dr11',
+        'dr12',	'dr13',	'dr14',	'dr15',
         ],
 
   # mmx registers 
-  "T_MMX":[
-        "mm0",	"mm1",	"mm2",	"mm3",
-        "mm4",	"mm5",	"mm6",	"mm7",
+  'T_MMX':[
+        'mm0',	'mm1',	'mm2',	'mm3',
+        'mm4',	'mm5',	'mm6',	'mm7',
         ],
 
   # x87 registers 
-  "T_ST":[
-        "st0",	"st1",	"st2",	"st3",
-        "st4",	"st5",	"st6",	"st7", 
+  'T_ST':[
+        'st0',	'st1',	'st2',	'st3',
+        'st4',	'st5',	'st6',	'st7', 
         ],
 
   # extended multimedia registers 
-  "T_XMM":[
-        "xmm0",	 "xmm1",  "xmm2",  "xmm3",
-        "xmm4",	 "xmm5",  "xmm6",  "xmm7",
-        "xmm8",	 "xmm9",  "xmm10", "xmm11",
-        "xmm12", "xmm13", "xmm14", "xmm15",
+  'T_XMM':[
+        'xmm0',	 'xmm1',  'xmm2',  'xmm3',
+        'xmm4',	 'xmm5',  'xmm6',  'xmm7',
+        'xmm8',	 'xmm9',  'xmm10', 'xmm11',
+        'xmm12', 'xmm13', 'xmm14', 'xmm15',
         ],
 
   # program counter
-  "IP":[
-        "rip",
+  'IP':[
+        'rip',
         ],
 
   # Operand Types 
-  "OP":[
-        "OP_REG",	"OP_MEM",	"OP_PTR",	"OP_IMM",	
-        "OP_JIMM",	"OP_CONST",
+  'OP':[
+        'OP_REG',	'OP_MEM',	'OP_PTR',	'OP_IMM',	
+        'OP_JIMM',	'OP_CONST',
         ],
 }
 

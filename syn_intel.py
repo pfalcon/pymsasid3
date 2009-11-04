@@ -10,120 +10,120 @@ from operand import P_OSO, P_ASO, P_IMPADDR
  # -----------------------------------------------------------------------------
  # Prints operand casts.
  # -----------------------------------------------------------------------------
-def intel_operand_cast(op) :
+def intel_operand_cast(op):
     ret = ''
-    if op.size ==  8 : 
-        ret += "byte "
-    elif op.size == 16 : 
-        ret += "word " 
-    elif op.size == 32 :
-        ret += "dword " 
-    elif op.size == 64 :
-        ret += "qword " 
-    elif op.size == 80 : 
-        ret += "tword " 
+    if op.size ==  8: 
+        ret += 'byte '
+    elif op.size == 16: 
+        ret += 'word ' 
+    elif op.size == 32:
+        ret += 'dword ' 
+    elif op.size == 64:
+        ret += 'qword ' 
+    elif op.size == 80: 
+        ret += 'tword ' 
 
     return ret
 
  # -----------------------------------------------------------------------------
  # Generates assembly output for operands.
  # -----------------------------------------------------------------------------
-def intel_operand_syntax (op) :
+def intel_operand_syntax(op):
     #return op.value
-    if op.type == None :
-        return ""
+    if op.type == None:
+        return ''
 
-    ret = ""
+    ret = ''
 
-    if op.type == "OP_REG":
+    if op.type == 'OP_REG':
         ret += op.base
         return ret
 
-    if op.cast :
-        ret += intel_operand_cast (op)
+    if op.cast:
+        ret += intel_operand_cast(op)
         
-    if op.type == "OP_MEM" :
+    if op.type == 'OP_MEM':
         op_f = 0
-        ret += "["
+        ret += '['
 
-        if op.seg :
-            ret += op.seg + ":"
+        if op.seg:
+            ret += op.seg + ':'
 
         if op.base and op.base != None:
             ret += op.base
             op_f = 1
 
         if op.index and op.index != None:
-            if op_f :
-                ret += "+"
+            if op_f:
+                ret += '+'
             ret += op.index
             op_f = 1
 
-        if op.scale :
+        if op.scale:
             ret += str(op.scale)
 
-        if op.offset in [8, 16, 32, 64] :
-            if (op.lval < 0) :
-                ret += "-" + hex(-op.lval)
-            else :
-                if op_f :
+        if op.offset in [8, 16, 32, 64]:
+            if(op.lval < 0):
+                ret += '-' + hex(-op.lval)
+            else:
+                if op_f:
                     # MK ???
                     if op.lval == 0.0:
                         op.lval = 0                    
-                    ret += "+" + hex(op.lval)
-                else :
+                    ret += '+' + hex(op.lval)
+                else:
                     ret += hex(op.lval)
-        ret += "]"
+        ret += ']'
 
-    elif op.type == "OP_IMM":
+    elif op.type == 'OP_IMM':
       ret += hex(op.lval)
 
-    elif op.type == "OP_JIMM":
+    elif op.type == 'OP_JIMM':
       val = op.pc + op.lval
       ret += hex(val)
 
-    elif op.type == "OP_PTR":
-        ret += "word " + hex(op.lval.seg) + ":" + hex(op.lval.off)
+    elif op.type == 'OP_PTR':
+        ret += 'word ' + hex(op.lval.seg) + ':' + hex(op.lval.off)
     return ret
 
 
  # =============================================================================
  # translates to intel syntax 
  # =============================================================================
-def intel_syntax (self) :
+def intel_syntax(self):
     ret = ''
     # -- prefixes -- 
 
     # check if P_OSO prefix is used 
-    if not P_OSO(self.itab_entry.prefix) and self.pfx.opr :
+    if not P_OSO(self.itab_entry.prefix) and self.pfx.opr:
         if self.dis_mode == 16: 
-            ret += "o32 "
-        elif self.dis_mode in [32, 64] :
-            ret += "o16 "
+            ret += 'o32 '
+        elif self.dis_mode in [32, 64]:
+            ret += 'o16 '
 
     # check if P_ASO prefix was used 
-    if not P_ASO(self.itab_entry.prefix) and self.pfx.adr :
+    if not P_ASO(self.itab_entry.prefix) and self.pfx.adr:
         if self.dis_mode == 16: 
-            ret += "a32 "
+            ret += 'a32 '
         elif self.dis_mode == 32:
-            ret += "a16 "
+            ret += 'a16 '
         elif self.dis_mode == 64:
-            ret += "a32 "
+            ret += 'a32 '
 
-    if self.pfx.lock :
-        ret += "lock "
-    if self.pfx.rep :
-        ret += "rep "
-    if self.pfx.repne :
-        ret += "repne "
-    if P_IMPADDR(self.itab_entry.prefix) and self.pfx.seg :
+    if self.pfx.lock:
+        ret += 'lock '
+    if self.pfx.rep:
+        ret += 'rep '
+    if self.pfx.repne:
+        ret += 'repne '
+    if P_IMPADDR(self.itab_entry.prefix) and self.pfx.seg:
         ret +=self.pfx.seg
 
     # print the instruction operator 
-    ret += self.operator + " "
-    if self.branch_dist :
-        ret += self.branch_dist + " "
-    for op in self.operand :
-        ret += intel_operand_syntax (op) + " "
+    ret += self.operator + ' '
+    if self.branch_dist:
+        ret += self.branch_dist + ' '
+    for op in self.operand:
+        ret += intel_operand_syntax(op) + ' '
 
     return ret
