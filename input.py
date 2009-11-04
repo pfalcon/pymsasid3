@@ -119,7 +119,7 @@ class Hexstring_hook (Hook_class):
     if pos >= 0 and pos <= len (self.source):
       self.pos = pos
     else :
-      print ("seek out of bounds " + add)   
+      print ("seek out of bounds %x") % add   
 
 # =============================================================================
 # file_hook - Hook for FILE inputs.
@@ -143,7 +143,7 @@ class File_hook (Hook_class) :
     if pos >= 0 :
       source.seek (pos)
     else :
-      print ("seek out of bounds " + add)   
+      print ("seek out of bounds %x") % add   
 
 class Input :
  # =============================================================================

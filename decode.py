@@ -10,6 +10,13 @@ from operand import *
 from itab import *
 from inst import *
 
+VENDOR_INTEL = 0
+VENDOR_AMD   = 1
+
+class DecodeException(Exception):
+    def __init__(self, value):
+        self.value = value        
+
 # Extracts instruction prefixes.
 def get_prefixes (u, inst) :
     have_pfx = 1
@@ -252,12 +259,12 @@ def search_itab (u, inst):
             elif u.vendor == VENDOR_AMD :
                 index = ITAB__VENDOR_INDX__AMD
             else :
-                raise operator ("unrecognized vendor id")
+                raise DecodeException("unrecognized vendor id")
     
         elif e.operator ==  "d3vil" :
-            raise operator ("invalid instruction operator constant Id3vil")
+            raise DecodeException("invalid instruction operator constant Id3vil")
         else :
-            raise operator ("invalid instruction operator constant")
+            raise DecodeException("invalid instruction operator constant")
     
     inst.itab_entry = e
     inst.operator = inst.itab_entry.operator
@@ -572,7 +579,7 @@ def disasm_operands(u, inst):
     # E, G/P/V/I/CL/1/S 
     elif mopt[0] == OP_M or mopt[0] == OP_E :
         if mopt[0] == OP_M and MODRM_MOD(u.input.peek ()) == 3 :
-            u.error= 1
+            u.error = 1
         if mopt[1] == OP_G :
             decode_modrm(u, inst, inst.operand[0], mops[0], "T_GPR", inst.operand[1], mops[1], "T_GPR")
             if mopt[2] == OP_I:
@@ -603,7 +610,7 @@ def disasm_operands(u, inst):
     elif mopt[0] == OP_G :
         if mopt[1] == OP_M :
             if MODRM_MOD(u.input.peek ()) == 3 :
-                u.error= 1
+                u.error = 1
             decode_modrm(u, inst, inst.operand[1], mops[1], "T_GPR", inst.operand[0], mops[0], "T_GPR")
         elif mopt[1] == OP_E :
             decode_modrm(u, inst, inst.operand[1], mops[1], "T_GPR", inst.operand[0], mops[0], "T_GPR")
@@ -687,7 +694,7 @@ def disasm_operands(u, inst):
         # in 64bits mode, only fs and gs are allowed 
         if u.dis_mode == 64 :
             if mopt[0] != OP_FS and mopt[0] != OP_GS :
-                u.error= 1
+                u.error = 1
         inst.operand[0].type = "OP_REG"
         inst.operand[0].base = GPR["T_SEG"][mopt[0] - OP_ES]
         inst.operand[0].size = 16
@@ -705,7 +712,7 @@ def disasm_operands(u, inst):
     elif mopt[0] == OP_PR :
         if MODRM_MOD(u.input.peek ()) != 3 :
             u.error = 1
-        decode_modrm(u, inst, inst.operand[0], mops[0], "T_MMX", NULL, 0, T_NONE)
+        decode_modrm(u, inst, inst.operand[0], mops[0], "T_MMX", NULL, 0, "T_NONE")
         if mopt[1] == OP_I :
             decode_imm(u, inst, mops[1], inst.operand[1])
 
@@ -713,7 +720,7 @@ def disasm_operands(u, inst):
     elif mopt[0] == OP_VR:
         if MODRM_MOD(u.input.peek ()) != 3 :
             u.error = 1
-        decode_modrm(u, inst, inst.operand[0], mops[0], "T_XMM", NULL, 0, T_NONE)
+        decode_modrm(u, inst, inst.operand[0], mops[0], "T_XMM", NULL, 0, "T_NONE")
         if mopt[1] == OP_I :
             decode_imm(u, inst, mops[1], inst.operand[1])
 
@@ -777,7 +784,7 @@ def disasm_operands(u, inst):
             decode_modrm(u, inst, inst.operand[1], mops[1], "T_MMX", inst.operand[0], mops[0], "T_XMM")
         elif mopt[1] == OP_M :
             if MODRM_MOD(u.input.peek ()) == 3 :
-                u.error= 1
+                u.error = 1
             decode_modrm(u, inst, inst.operand[1], mops[1], "T_GPR", inst.operand[0], mops[0], "T_XMM")
         elif mopt[1] == OP_E :
             decode_modrm(u, inst, inst.operand[1], mops[1], "T_GPR", inst.operand[0], mops[0], "T_XMM")
@@ -916,34 +923,34 @@ def do_mode (u, inst) :
 # =============================================================================
 # decode() - Instruction decoder. Returns the number of bytes decoded.
 # =============================================================================
-def decode(u) :
-    inst = Inst(add = u.pc, mode = u.dis_mode, syntax = u.syntax)
-    u.error = 0
-    u.input.start()
-    if get_prefixes(u, inst) != 0 :
+def decode(self) :
+    inst = Inst(add = self.pc, mode = self.dis_mode, syntax = self.syntax)
+    self.error = 0
+    self.input.start()
+    if get_prefixes(self, inst) != 0 :
         pass # ;print ("prefixes error") # error 
-    elif search_itab(u, inst) != 0 :
+    elif search_itab(self, inst) != 0 :
         pass #; print ("itab error") # error 
-    elif do_mode(u, inst) != 0 :
+    elif do_mode(self, inst) != 0 :
         pass #; print ("mode error") # error 
-    elif disasm_operands(u, inst) != 0 :
+    elif disasm_operands(self, inst) != 0 :
         pass #; print ("operand error") # error 
-    elif resolve_operator(u, inst) != 0 :
+    elif resolve_operator(self, inst) != 0 :
         pass #; print ("operator error") # error 
     # Handle decode error.
-    if u.error :
+    if self.error :
         inst.clear()
-    inst.size = u.input.ctr + 1
-    inst.raw = u.input.buffer[0:inst.size]
+    inst.size = self.input.ctr + 1
+    inst.raw = self.input.buffer[0:inst.size]
     inst.set_pc (inst.add + inst.size)
-    inst.compute_values ();
+    inst.compute_values ()
     for op in inst.operand :
         if op.type == "OP_MEM" and not type (op.value) == str :
             try :
-                u.input.seek (op.value)
-                op.value = long(u.input.hook.base_address + u.input.read (op.size))
-            except :
-                if op.value in u.input.symbols.keys() :
+                self.input.seek (op.value)
+                op.value = long(self.input.hook.base_address + self.input.read (op.size))
+            except DecodeException:
+                if op.value in self.input.symbols.keys() :
                     op.ref = "[" + hex(op.value) + "]"
-                    op.value = str(u.input.symbols[op.value])
+                    op.value = str(self.input.symbols[op.value])
     return inst
