@@ -5,25 +5,25 @@
  # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
  # =============================================================================
 
-from types import *
 CACHE_SIZE = 64
 
-class Hook_class:
-    dis_mode = 32
+class Hook:
     def __init__(self, source, base_address):
-        pass
+        self.dis_mode = 32
+
     def hook(self):
-        pass
+        raise NotImplementedError('abstract method: Hook.hook() should not be called directly')
+
     def seek(self, add):
-        pass
+        raise NotImplementedError('abstract method: Hook.seek() should not be called directly')
+
     def symbols(self):
         return {}
 
-# =============================================================================
-# buff_hook - Hook for buffered inputs.
-# =============================================================================
-class Buffer_hook(Hook_class):
+class BufferHook(Hook):
+    """Hook for buffered inputs."""
     def __init__(self, source, base_address):
+        Hook.__init__(self, source, base_address)
         self.source = source
         self.pos = 0
         self.set_source(source)
@@ -49,14 +49,15 @@ class Buffer_hook(Hook_class):
         else:
             print('seek out of bounds ' + add)     
 
-class PEString_hook(Buffer_hook):
+class PEStringHook(BufferHook):
     def __init__(self, source, base_address):
+        BufferHook.__init__(self, source, base_address)
         import pefile
         self.pe = pefile.PE(data = source)
         self.source = self.pe.get_memory_mapped_image()
         self.base_address = self.pe.OPTIONAL_HEADER.ImageBase
-        self.entry_point =(self.base_address 
-                                                + self.pe.OPTIONAL_HEADER.AddressOfEntryPoint)
+        self.entry_point = (self.base_address 
+                            + self.pe.OPTIONAL_HEADER.AddressOfEntryPoint)
         self.pos = 0
         self.seek(self.base_address + self.pe.OPTIONAL_HEADER.AddressOfEntryPoint)
         if self.pe.PE_TYPE == pefile.OPTIONAL_HEADER_MAGIC_PE:
@@ -78,28 +79,30 @@ class PEString_hook(Buffer_hook):
                 if imp.name:
                     ret[imp.address] = imp.name
 #                print(hex(imp.address) + ':' + imp.name)
-        return    ret
+        # commented this out, or else we have unreachable code
+        # return ret
         for exp in self.pe.DIRECTORY_ENTRY_EXPORT.symbols:
             key = self.pe.OPTIONAL_HEADER.ImageBase + exp.address
             ret[key] = exp.name # exp.ordinal        
         return ret
             
-class PEFile_hook(PEString_hook):
+class PEFileHook(PEStringHook):
     def __init__(self, source, base_address):
+        PEStringHook.__init__(self, source, base_address)
         import pefile
         self.pe = pefile.PE(name = source)
         self.source = self.pe.get_memory_mapped_image()
         self.pos = self.base_address = base_address
         self.base_address = self.pe.OPTIONAL_HEADER.ImageBase
-        self.entry_point =(self.base_address 
+        self.entry_point = (self.base_address 
                                                 + self.pe.OPTIONAL_HEADER.AddressOfEntryPoint)
         self.seek(self.base_address + self.pe.OPTIONAL_HEADER.AddressOfEntryPoint)
 
-# =============================================================================
-# hexstring_hook - Hook for hex string inputs.
-# =============================================================================
-class Hexstring_hook(Hook_class):
+
+class HexstringHook(Hook):
+    """Hook for hex string inputs."""
     def __init__(self, source, base_address):
+        Hook.__init__(self, source, base_address)
         self.set_source(source)
         self.entry_point = self.base_address = base_address
 
@@ -121,16 +124,16 @@ class Hexstring_hook(Hook_class):
         else:
             print('seek out of bounds %x') % add     
 
-# =============================================================================
-# file_hook - Hook for FILE inputs.
-# =============================================================================
-class File_hook(Hook_class):
+
+class FileHook(Hook):
+    """Hook for FILE inputs."""
     def __init__(self, source, base_address):
-        self.set_source(source)
+        Hook.__init__(self, source, base_address)
+        self.source = source
         self.entry_point = self.base_address = base_address
     
     def set_source(self, source):
-        self.source = source;
+        self.source = source
 
     def hook(self):
         s = self.source.read(1)
@@ -146,17 +149,18 @@ class File_hook(Hook_class):
             print('seek out of bounds %x') % add     
 
 class Input:
- # =============================================================================
- # __init__() - Initializes the input system. 
- # =============================================================================
-    def __init__(self, Hook, source, base_address = 0):
-        self.hook = Hook(source, base_address)
+    def __init__(self, hook, source, base_address = 0):
+        self.hook = hook(source, base_address)
         self.symbols = self.hook.symbols()
-        self.start()
+        self.ctr = -1
+        self.fill = -1
+        self.error = 0
+        self.buffer = []
 
     def seek(self, add):
         self.hook.seek(add)
 
+    # is this really necessary ?
     def start(self):
         self.ctr = -1
         self.fill = -1
@@ -182,27 +186,21 @@ class Input:
             self.error = 1
         return c
 
- # =============================================================================
- # back() - Move back a single byte in the stream.
- # =============================================================================
     def back(self):
+        """Move back a single byte in the stream."""
         if self.ctr >= 0:
             self.ctr -= 1
 
- # =============================================================================
- # peek() - Peek into the next byte in source. 
- # =============================================================================
-    def peek(self): 
+    def peek(self):
+        """Peek into the next byte in source."""
         r = self.next()
         # Don't backup if there was an error    return r
         if not self.error:
             self.back()    
         return long(r)
 
-#=============================================================================
-#    read(N) - read uint of N bits from source.
-#=============================================================================
     def read(self, n):
+        """read uint of n bits from source"""
         if n < 8:
             print('minimal size of addressable memory is 8 bits(' + n +')')
         elif n == 8:

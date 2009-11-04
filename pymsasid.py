@@ -16,7 +16,7 @@ class Pymsasid:
                  source = '', 
                  syntax = intel_syntax,
                  vendor = VENDOR_INTEL,
-                 hook = Buffer_hook):
+                 hook = BufferHook):
         self.error = 0
         self.vendor = self.set_vendor(vendor)
         self.input = Input(hook, source) 
