@@ -5,16 +5,17 @@
 # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
 # -----------------------------------------------------------------------------
 
-from input import *
-from decode import *
-from syn_intel import *
-from syn_att import *
+from input import BufferHook, Input
+from inst import Inst
+from common import DecodeException, VENDOR_INTEL, VENDOR_AMD
+import decode as dec
+import syn_intel as intel
 
 class Pymsasid:
     def __init__(self, 
                  mode = None, 
                  source = '', 
-                 syntax = intel_syntax,
+                 syntax = intel.intel_syntax,
                  vendor = VENDOR_INTEL,
                  hook = BufferHook):
         self.error = 0
@@ -44,4 +45,4 @@ class Pymsasid:
         self.input.hook.seek(add)
         self.pc = add
 
-Pymsasid.decode = decode
+Pymsasid.decode = dec.decode

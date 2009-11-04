@@ -6,29 +6,24 @@
  # -----------------------------------------------------------------------------
 
 from operand import P_OSO, P_ASO, P_IMPADDR
-        
- # -----------------------------------------------------------------------------
- # Prints operand casts.
- # -----------------------------------------------------------------------------
+from common import DecodeException
+
 def intel_operand_cast(op):
-    ret = ''
-    if op.size ==  8: 
-        ret += 'byte '
-    elif op.size == 16: 
-        ret += 'word ' 
-    elif op.size == 32:
-        ret += 'dword ' 
-    elif op.size == 64:
-        ret += 'qword ' 
-    elif op.size == 80: 
-        ret += 'tword ' 
+    """Returns operand casts."""
+    ret = {
+        8: 'byte ',
+        16: 'word ',
+        32: 'dword ',
+        64: 'qword ',
+        84: 'tword '
+    }
+    try:
+        return ret[op.size]
+    except KeyError:
+        raise DecodeException('unknown operand size: ' + str(op.size))
 
-    return ret
-
- # -----------------------------------------------------------------------------
- # Generates assembly output for operands.
- # -----------------------------------------------------------------------------
 def intel_operand_syntax(op):
+    """Generates assembly output for operands."""
     #return op.value
     if op.type == None:
         return ''
@@ -76,21 +71,18 @@ def intel_operand_syntax(op):
         ret += ']'
 
     elif op.type == 'OP_IMM':
-      ret += hex(op.lval)
+        ret += hex(op.lval)
 
     elif op.type == 'OP_JIMM':
-      val = op.pc + op.lval
-      ret += hex(val)
+        val = op.pc + op.lval
+        ret += hex(val)
 
     elif op.type == 'OP_PTR':
         ret += 'word ' + hex(op.lval.seg) + ':' + hex(op.lval.off)
     return ret
 
-
- # =============================================================================
- # translates to intel syntax 
- # =============================================================================
 def intel_syntax(self):
+    """translates to intel syntax"""
     ret = ''
     # -- prefixes -- 
 
@@ -117,7 +109,7 @@ def intel_syntax(self):
     if self.pfx.repne:
         ret += 'repne '
     if P_IMPADDR(self.itab_entry.prefix) and self.pfx.seg:
-        ret +=self.pfx.seg
+        ret += self.pfx.seg
 
     # print the instruction operator 
     ret += self.operator + ' '

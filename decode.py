@@ -5,17 +5,10 @@
 # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
 # -----------------------------------------------------------------------------
 
-
+from common import DecodeException
 from operand import *
 from itab import *
 from inst import *
-
-VENDOR_INTEL = 0
-VENDOR_AMD   = 1
-
-class DecodeException(Exception):
-    def __init__(self, value):
-        self.value = value        
 
 # Extracts instruction prefixes.
 def get_prefixes(u, inst):
