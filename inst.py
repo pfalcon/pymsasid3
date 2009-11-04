@@ -1,6 +1,47 @@
-from operand import *
-from syn_intel import *
-from syn_att import *
+from operand import O_NONE, P_none
+import syn_intel as intel
+#from syn_att import *
+
+operator_list_invalid = [ 'invalid']
+
+operator_list_call = ['syscall', 
+                      'call', 
+                      'vmcall', 
+                      'vmmcall']
+
+operator_list_ret = ['sysret',
+                     'iretw',
+                     'iretd',
+                     'iretq',
+                     'ret',
+                     'retf']
+
+operator_list_jmp = ['jmp']
+
+operator_list_jcc = ['jo',
+                     'jno',
+                     'jb',
+                     'jae',
+                     'jz',
+                     'jnz',
+                     'jbe',
+                     'ja',
+                     'js',
+                     'jns',
+                     'jp',
+                     'jnp',
+                     'jl',
+                     'jge',
+                     'jle',
+                     'jg',
+                     'jcxz',
+                     'jecxz',
+                     'jrcxz',
+                     'loopnz',
+                     'loope',
+                     'loop']
+
+operator_list_hlt = ['hlt']
 
 class itab_entry:
     def __init__(self, 
@@ -122,7 +163,7 @@ class Operand:
         return self.__str__()
 
 class Inst:
-    def __init__(self, add = 0, mode = 16, syntax = intel_syntax):
+    def __init__(self, add = 0, mode = 16, syntax = intel.intel_syntax):
         self.dis_mode = mode
         self.size = 0
         self.add = add
@@ -206,46 +247,4 @@ class Inst:
             return 'hlt'
         else:
             return 'seq'
-        
-         
 
-operator_list_invalid = [ 'invalid']
-
-operator_list_call = ['syscall', 
-                      'call', 
-                      'vmcall', 
-                      'vmmcall']
-
-operator_list_ret = ['sysret',
-                     'iretw',
-                     'iretd',
-                     'iretq',
-                     'ret',
-                     'retf']
-
-operator_list_jmp = ['jmp']
-
-operator_list_jcc = ['jo',
-                     'jno',
-                     'jb',
-                     'jae',
-                     'jz',
-                     'jnz',
-                     'jbe',
-                     'ja',
-                     'js',
-                     'jns',
-                     'jp',
-                     'jnp',
-                     'jl',
-                     'jge',
-                     'jle',
-                     'jg',
-                     'jcxz',
-                     'jecxz',
-                     'jrcxz',
-                     'loopnz',
-                     'loope',
-                     'loop']
-
-operator_list_hlt = ['hlt']
