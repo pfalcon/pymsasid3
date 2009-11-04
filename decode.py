@@ -185,7 +185,7 @@ def search_itab (u, inst):
 
     index = curr
 
-    while 1 :
+    while True:
         e = itab_list[ table ][ index ]
 
         # if operator constant is a standard instruction constant
@@ -195,7 +195,8 @@ def search_itab (u, inst):
             if e.operator == "invalid" :
                 if did_peek :
                     u.input.next () 
-                    if u.input.error: 
+                    if u.input.error:
+                        raise DecodeException ("erreur") 
                         return -1
             inst.itab_entry = e
             inst.operator = inst.itab_entry.operator

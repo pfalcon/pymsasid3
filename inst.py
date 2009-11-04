@@ -62,6 +62,14 @@ class Operand:
     self.value = None
     self.ref = None
     
+  def compute_sign (self, lval):
+    if(lval < 0):
+      return "-" + hex(-self.lval)
+    elif self.value != '':
+      return "+" + hex(self.lval)
+    else :
+      return hex(self.lval)
+    
   # MASSIVE WTF?!?
   def compute_value(self):
     if self.type == "OP_REG":
@@ -77,42 +85,30 @@ class Operand:
           self.value += "+"
         self.value += self.index
       if self.scale != 0:
-        self.value += str(self.scale)
+        self.value += hex(self.scale)
       if self.offset in [8, 16, 32, 64]:
-        if self.value == '':
-          self.value = str(self.lval)
-        else:
-          if(self.lval < 0):
-            self.value += "-" + hex(-self.lval)
-          else:
-            self.value += "+" + hex(self.lval)
+        self.value += self.compute_sign (self.lval)
     elif self.type == "OP_IMM":
-      self.value = str(self.lval)
+      self.value = self.compute_sign (self.lval)
     elif self.type == "OP_JIMM":
-      self.value = str(self.pc + self.lval) # str(x+y) or str(x) + str(y) ?
+      self.value = self.compute_sign (self.pc + self.lval)
     elif self.type == "OP_PTR":
       # used to be:(clearly broken)
       #self.value = long(self.lval.seg << 4) + self.lval.off
       raise NotImplementedError('should do something about OP_PTR. Really.')
 
-  def cast(self):
-    ret = ""
-    if self.size ==  8: 
-      ret = "byte "
-    elif self.size == 16: 
-      ret = "word " 
-    elif self.size == 32:
-      ret = "dword " 
-    elif self.size == 64:
-      ret = "qword " 
-    elif self.size == 80:
-      ret = "tword " 
-    return ret
 
   def __str__(self):
     value = ""
     if self.cast:
-      value = self.cast()
+      ret = {
+        8: 'byte ',
+        16: 'word ',
+        32: 'dword ',
+        64: 'qword ',
+        84: 'tword '
+      }
+      value = ret[self.size]
     if not type(self.value) == str:
       value += hex(self.value)
     else:

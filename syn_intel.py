@@ -29,7 +29,7 @@ def intel_operand_cast(op) :
  # Generates assembly output for operands.
  # -----------------------------------------------------------------------------
 def intel_operand_syntax (op) :
-
+    #return op.value
     if op.type == None :
         return ""
 
@@ -76,13 +76,11 @@ def intel_operand_syntax (op) :
         ret += "]"
 
     elif op.type == "OP_IMM":
-        ret += hex(op.lval)
+      ret += hex(op.lval)
 
     elif op.type == "OP_JIMM":
-        val = op.pc + op.lval
-        if val < 0 :
-            val += pow (2, 64) 
-        ret += hex(val)
+      val = op.pc + op.lval
+      ret += hex(val)
 
     elif op.type == "OP_PTR":
         ret += "word " + hex(op.lval.seg) + ":" + hex(op.lval.off)
