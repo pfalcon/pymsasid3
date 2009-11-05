@@ -160,13 +160,6 @@ class Input:
     def seek(self, add):
         self.hook.seek(add)
 
-    # is this really necessary ?
-    def start(self):
-        self.ctr = -1
-        self.fill = -1
-        self.error = 0
-        self.buffer = []
-
     def current(self):
         if self.ctr >= 0:
             return self.buffer[self.ctr]

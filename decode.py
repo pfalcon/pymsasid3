@@ -900,7 +900,6 @@ def decode(self):
     """Instruction decoder. Returns the number of bytes decoded."""
     inst = Inst(add = self.pc, mode = self.dis_mode, syntax = self.syntax)
     self.error = 0
-    self.input.start()
     if get_prefixes(self, inst) != 0:
         pass # ;print('prefixes error') # error 
     elif search_itab(self, inst) != 0:
