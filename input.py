@@ -81,9 +81,12 @@ class PEStringHook(BufferHook):
 #                print(hex(imp.address) + ':' + imp.name)
         # commented this out, or else we have unreachable code
         # return ret
-        for exp in self.pe.DIRECTORY_ENTRY_EXPORT.symbols:
-            key = self.pe.OPTIONAL_HEADER.ImageBase + exp.address
-            ret[key] = exp.name # exp.ordinal        
+        try:
+            for exp in self.pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                key = self.pe.OPTIONAL_HEADER.ImageBase + exp.address
+                ret[key] = exp.name # exp.ordinal        
+        except:
+            pass
         return ret
             
 class PEFileHook(PEStringHook):
@@ -101,13 +104,13 @@ class PEFileHook(PEStringHook):
 
 class HexstringHook(Hook):
     """Hook for hex string inputs."""
-    def __init__(self, source, base_address):
+    def __init__(self, source, base_address = 0):
         Hook.__init__(self, source, base_address)
         self.set_source(source)
         self.entry_point = self.base_address = base_address
 
     def set_source(self, source):
-        self.source = source.split(' ')
+        self.source = source.strip().split(' ')
         self.pos = 0
 
     def hook(self):
@@ -119,10 +122,8 @@ class HexstringHook(Hook):
 
     def seek(self, add):
         pos = add - self.base_address
-        if pos >= 0 and pos <= len(self.source):
+        if pos >= 0 and pos < len(self.source):
             self.pos = pos
-        else:
-            print('seek out of bounds %x') % add     
 
 
 class FileHook(Hook):
@@ -152,6 +153,9 @@ class Input:
     def __init__(self, hook, source, base_address = 0):
         self.hook = hook(source, base_address)
         self.symbols = self.hook.symbols()
+        self.start ()
+
+    def start (self) :
         self.ctr = -1
         self.fill = -1
         self.error = 0
