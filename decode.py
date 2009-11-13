@@ -142,6 +142,10 @@ def search_itab(u, inst):
     if u.error:
         return -1
     curr = u.input.current() 
+    if curr == None :
+        inst.itab_entry = ie_invalid
+        inst.operator = inst.itab_entry.operator
+        return 0        
 
     # resolve xchg, nop, pause crazyness
     if 0x90 == curr:
@@ -397,7 +401,7 @@ def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
         if rm_type ==  'T_GPR':
             op.base = decode_gpr(u, inst, op.size, rm)
         else:   
-            op.base = resolve_reg(u, inst, rm_type, (REX_B(inst.pfx.rex) << 3) |(rm&7))
+            op.base = resolve_reg(rm_type, (REX_B(inst.pfx.rex) << 3) |(rm&7))
 
     # else its memory addressing 
     else: 
@@ -462,8 +466,8 @@ def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
                 u.input.next()
 
                 op.scale = (1 << SIB_S(u.input.current())) & ~1
-                op.index = GPR[16][SIB_I(u.input.current()) |(REX_X(inst.pfx.rex) << 3)]
-                op.base  = GPR[16][SIB_B(u.input.current()) |(REX_B(inst.pfx.rex) << 3)]
+                op.index = GPR[32][SIB_I(u.input.current()) |(REX_X(inst.pfx.rex) << 3)]
+                op.base  = GPR[32][SIB_B(u.input.current()) |(REX_B(inst.pfx.rex) << 3)]
 
                 if op.index == 'esp':
                     op.index = None
@@ -523,7 +527,7 @@ def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
         if reg_type == 'T_GPR': 
             opreg.base = decode_gpr(u, inst, opreg.size, reg)
         else:
-            opreg.base = resolve_reg(u, inst, reg_type, reg)
+            opreg.base = resolve_reg(reg_type, reg)
 
 def decode_o(u, inst, s, op):
     """Decodes offset."""
@@ -899,7 +903,7 @@ def do_mode(u, inst):
 
 def decode(self):
     """Instruction decoder. Returns the number of bytes decoded."""
-    inst = Inst(add = self.pc, mode = self.dis_mode, syntax = self.syntax)
+    inst = Inst(myInput = self.input, add = self.pc, mode = self.dis_mode, syntax = self.syntax)
     self.error = 0
     self.input.start ()
     if get_prefixes(self, inst) != 0:
@@ -918,14 +922,4 @@ def decode(self):
     inst.size = self.input.ctr + 1
     inst.raw = self.input.buffer[0:inst.size]
     inst.set_pc(inst.add + inst.size)
-    inst.compute_values()
-    for op in inst.operand:
-        if op.type == 'OP_MEM' and not type(op.value) == str:
-            try:
-                self.input.seek(op.value)
-                op.value = long(self.input.hook.base_address + self.input.read(op.size))
-            except DecodeException:
-                if op.value in self.input.symbols.keys():
-                    op.ref = '[' + hex(op.value) + ']'
-                    op.value = str(self.input.symbols[op.value])
     return inst

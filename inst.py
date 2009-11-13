@@ -1,5 +1,7 @@
 from operand import O_NONE, P_none
 import syn_intel as intel
+#hack MK
+from syn_intel import intel_operand_syntax
 #from syn_att import *
 
 operator_list_invalid = [ 'invalid']
@@ -101,69 +103,16 @@ class Operand:
 
     def clear(self):
         self.__init__()
-        
-    def compute_sign(self, lval):
-        if(lval < 0):
-            return '-' + hex(-self.lval)
-        elif self.value != '':
-            return '+' + hex(self.lval)
-        else:
-            return hex(self.lval)
-        
-    # MASSIVE WTF?!?
-    def compute_value(self):
-        if self.type == 'OP_REG':
-            self.value = self.base
-        elif self.type == 'OP_MEM':
-            self.value = ''
-            if self.seg:
-                self.value = self.seg + ':'
-            if self.base:
-                self.value += self.base
-            if self.index:
-                if self.value != '':
-                    self.value += '+'
-                self.value += self.index
-            if self.scale != 0:
-                self.value += hex(self.scale)
-            if self.offset in [8, 16, 32, 64]:
-                self.value += self.compute_sign(self.lval)
-        elif self.type == 'OP_IMM':
-            self.value = self.compute_sign(self.lval)
-        elif self.type == 'OP_JIMM':
-            self.value = self.compute_sign(self.pc + self.lval)
-        elif self.type == 'OP_PTR':
-            # used to be:(clearly broken)
-            #self.value = long(self.lval.seg << 4) + self.lval.off
-            raise NotImplementedError('should do something about OP_PTR. Really.')
-        else:
-            raise Exception('should not reach this point in Operand.compute_value()')
-
-
+         
     def __str__(self):
-        value = ''
-        if self.cast:
-            ret = {
-                8: 'byte ',
-                16: 'word ',
-                32: 'dword ',
-                64: 'qword ',
-                84: 'tword '
-            }
-            value = ret[self.size]
-        if not type(self.value) == str:
-            value += hex(self.value)
-        else:
-            value += self.value
-        if self.type == 'OP_MEM':
-            return '[' + value + ']'
-        return value
+        return intel_operand_syntax (self)
     
     def __repr__(self):
         return self.__str__()
 
 class Inst:
-    def __init__(self, add = 0, mode = 16, syntax = intel.intel_syntax):
+    def __init__(self, myInput, add = 0, mode = 16, syntax = intel.intel_syntax):
+        self.input = myInput
         self.dis_mode = mode
         self.size = 0
         self.add = add
@@ -198,10 +147,6 @@ class Inst:
         for op in self.operand:
             op.pc = pc
             
-    def compute_values(self):
-        for op in self.operand:
-            op.compute_value()
-
     def branch(self):
         if(self.operator in operator_list_invalid 
                or self.operator in operator_list_ret 
@@ -209,8 +154,7 @@ class Inst:
             return []
         elif self.operator in operator_list_jmp:
             return [self.target_add()]
-        elif(self.operator in operator_list_call 
-                or self.operator in operator_list_jcc):
+        elif self.operator in operator_list_call or self.operator in operator_list_jcc:
             return [self.next_add(), self.target_add()]
         return [self.next_add()]
 
@@ -225,7 +169,8 @@ class Inst:
             ret = ((self.operand[0].lval.seg << 4) 
                    + self.operand[0].lval.off)
         elif self.operand[0].type == 'OP_MEM':
-            ret = self.operand[0].value
+            self.input.seek(self.operand[0].lval)
+            ret = long (self.input.hook.base_address + self.input.read(self.operand[0].size))
         else:
             ret = str(self.operand[0])
         if(type(ret) == str):

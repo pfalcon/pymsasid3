@@ -40,14 +40,14 @@ class BufferHook(Hook):
             #print(hex(self.pos) + ' ' + hex(ord(ret)))
             return ord(ret)
         else:
-            print('end of input ' + self.pos + ' ' + self.base_address)
+            self.pos = None
         
     def seek(self, add):
         pos = add - self.base_address
         if pos >= 0 and pos <= len(self.source):
             self.pos = pos
         else:
-            print('seek out of bounds ' + add)     
+            self.pos = None
 
 class PEStringHook(BufferHook):
     def __init__(self, source, base_address):
@@ -70,7 +70,7 @@ class PEStringHook(BufferHook):
         if pos >= 0 and pos <= len(self.source):
             self.pos = pos
         else:
-            print('seek out of bounds ' + add)     
+            self.pos = None
 
     def symbols(self):
         ret = {}
@@ -124,6 +124,8 @@ class HexstringHook(Hook):
         pos = add - self.base_address
         if pos >= 0 and pos < len(self.source):
             self.pos = pos
+        else:
+            self.pos = None
 
 
 class FileHook(Hook):
@@ -147,7 +149,7 @@ class FileHook(Hook):
         if pos >= 0:
             self.source.seek(pos)
         else:
-            print('seek out of bounds %x') % add     
+            self.pos = None
 
 class Input:
     def __init__(self, hook, source, base_address = 0):
@@ -163,6 +165,8 @@ class Input:
 
     def seek(self, add):
         self.hook.seek(add)
+        if self.hook.pos == None :
+            self.error = 1
 
     def current(self):
         if self.ctr >= 0:
@@ -171,6 +175,8 @@ class Input:
             return -1
 
     def next(self):
+        if self.error == 1 :
+            return -1
         if self.ctr < self.fill:
             self.ctr += 1
             return self.current()
@@ -197,6 +203,8 @@ class Input:
         return long(r)
 
     def read(self, n):
+        if self.error == 1:
+            return -1
         """read uint of n bits from source"""
         if n < 8:
             print('minimal size of addressable memory is 8 bits(' + n +')')
