@@ -17,37 +17,29 @@ GPR = {
         'al',	'cl',	'dl',	'bl',
         'ah',	'ch',	'dh',	'bh',
         'spl',	'bpl',	'sil',	'dil',
-        'al',	'cl',	'dl',	'bl',
-        'ah',	'ch',	'dh',	'bh',
-#        'r8b',	'r9b',	'r10b',	'r11b',
-#        'r12b',	'r13b',	'r14b',	'r15b',
+        'r8b',	'r9b',	'r10b',	'r11b',
+        'r12b',	'r13b',	'r14b',	'r15b',
         ],
   # 16 bit GPRs 
   16:[
         'ax',	'cx',	'dx',	'bx',
         'sp',	'bp',	'si',	'di',
-        'ax',	'cx',	'dx',	'bx',
-        'sp',	'bp',	'si',	'di',
-#        'r8w',	'r9w',	'r10w',	'r11w',
-#        'r12w',	'r13w',	'r14w',	'r15w',
+        'r8w',	'r9w',	'r10w',	'r11w',
+        'r12w',	'r13w',	'r14w',	'r15w',
 	],
   # 32 bit GPRs 
   32:[
         'eax',	'ecx',	'edx',	'ebx',
         'esp',	'ebp',	'esi',	'edi',
-        'eax',	'ecx',	'edx',	'ebx',
-        'esp',	'ebp',	'esi',	'edi',
-#        'r8d',	'r9d',	'r10d',	'r11d',
-#        'r12d',	'r13d',	'r14d',	'r15d',
+        'r8d',	'r9d',	'r10d',	'r11d',
+        'r12d',	'r13d',	'r14d',	'r15d',
 	],
   # 64 bit GPRs
   64:[
         'rax',	'rcx',	'rdx',	'rbx',
         'rsp',	'rbp',	'rsi',	'rdi',
-        'rax',	'rcx',	'rdx',	'rbx',
-        'rsp',	'rbp',	'rsi',	'rdi',
-#        'r8',	'r9',	'r10',	'r11',
-#        'r12',	'r13',	'r14',	'r15',
+        'r8',	'r9',	'r10',	'r11',
+        'r12',	'r13',	'r14',	'r15',
         ],
   # segment registers 
   'T_SEG':[
