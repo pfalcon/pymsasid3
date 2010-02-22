@@ -363,7 +363,7 @@ def resolve_gpr64(u, inst, gpr_op):
         index = gpr_op - OP_rAX
     if inst.opr_mode == 16:
         return GPR[16][index]
-    elif u.dis_mode == 32 and not(inst.opr_mode == 64 or REX_W(inst.pfx.rex) == 0):
+    elif u.dis_mode == 32 or not(inst.opr_mode == 32 and REX_W(inst.pfx.rex) == 0):
         return GPR[32][index]
     return GPR[64][index]
 
