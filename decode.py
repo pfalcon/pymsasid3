@@ -439,7 +439,7 @@ def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
                 if op.base == 'rbp' or op.base == 'r13':
                     if mod == 0: 
                         op.base = None
-                    elif mod == 1:
+                    if mod == 1:
                         op.offset = 8
                     else:
                         op.offset = 32
@@ -477,7 +477,7 @@ def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
                 if op.base == 'ebp':
                     if mod == 0:
                         op.base = None
-                    elif mod == 1:
+                    if mod == 1:
                         op.offset = 8
                     else:
                         op.offset = 32
