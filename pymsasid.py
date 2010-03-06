@@ -35,7 +35,7 @@ class Pymsasid:
             self.seek(add)
             return self.decode()
         except DecodeException:
-            return Inst()
+            return Inst(self.input)
             
     def set_vendor(self, vendor):
         if vendor in [VENDOR_INTEL, VENDOR_AMD]:
