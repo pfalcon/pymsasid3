@@ -52,7 +52,11 @@ class BufferHook(Hook):
 class PEStringHook(BufferHook):
     def __init__(self, source, base_address):
         BufferHook.__init__(self, source, base_address)
-        import pefile
+        try :
+            import pefile
+        except :
+            print('pefile module not found. see http://code.google.com/p/pefile/')
+            exit()
         self.pe = pefile.PE(data = source)
         self.source = self.pe.get_memory_mapped_image()
         self.base_address = self.pe.OPTIONAL_HEADER.ImageBase
@@ -89,10 +93,14 @@ class PEStringHook(BufferHook):
             pass
         return ret
             
-class PEFileHook(PEStringHook):
+class PEFileHook(BufferHook):
     def __init__(self, source, base_address):
-        PEStringHook.__init__(self, source, base_address)
-        import pefile
+        BufferHook.__init__(self, source, base_address)
+        try :
+            import pefile
+        except :
+            print('pefile module not found. see http://code.google.com/p/pefile/')
+            exit()
         self.pe = pefile.PE(name = source)
         self.source = self.pe.get_memory_mapped_image()
         self.pos = self.base_address = base_address
