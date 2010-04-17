@@ -357,7 +357,7 @@ def decode_gpr(u, inst, s, rm):
 
 def resolve_gpr64(u, inst, gpr_op):
     """64bit General Purpose Register-Selection."""
-    if gpr_op in  range(OP_rAXr8, OP_rDIr15) :
+    if gpr_op in  range(OP_rAXr8, OP_rDIr15 + 1) :
         index = (gpr_op - OP_rAXr8) |(REX_B(inst.pfx.rex) << 3)          
     else:
         index = gpr_op - OP_rAX
