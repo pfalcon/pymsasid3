@@ -34,7 +34,7 @@ def intel_operand_syntax(op):
         ret += op.base
         return ret
 
-    if op.cast:
+    if op.cast == 1:
         ret += intel_operand_cast(op)
         
     if op.type == 'OP_MEM':

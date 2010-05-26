@@ -96,7 +96,7 @@ class Operand:
         self.index = None
         self.offset = 0
         self.scale = 0
-        self.cast = 0
+        self.cast = None
         self.pc = 0
         self.value = None
         self.ref = None

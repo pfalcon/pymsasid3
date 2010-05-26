@@ -553,6 +553,12 @@ def disasm_operands(u, inst):
     elif mopt[0] != OP_NONE:
         inst.operand = [Operand()]
     
+    # These flags determine which operand to apply the operand size
+    # cast to.
+    cast = [P_C0, P_C1, P_C2]
+    for i in range(len(inst.operand)):
+        inst.operand[i].cast = cast[i](inst.itab_entry.prefix)
+
     # iop = instruction operand 
     #iop = inst.operand
         
@@ -893,11 +899,6 @@ def do_mode(u, inst):
             inst.adr_mode = 32 
         else: 
             inst.adr_mode = 16
-    # These flags determine which operand to apply the operand size
-    # cast to.
-    cast = [P_C0, P_C1, P_C2]
-    for i in range(len(inst.operand)):
-        inst.operand[i].cast = cast[i](inst.itab_entry.prefix)
 
     return 0
 
