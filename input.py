@@ -34,7 +34,7 @@ class BufferHook(Hook):
         self.pos = 0
 
     def hook(self):
-        if self.pos != None and self.pos > 0 and self.pos < len(self.source):
+        if self.pos != None and self.pos >= 0 and self.pos < len(self.source):
             ret = self.source[self.pos]
             self.pos += 1
             #print(hex(self.pos) + ' ' + hex(ord(ret)))
