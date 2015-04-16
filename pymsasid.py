@@ -2,12 +2,12 @@
 # Rewritten from udis86 -- Vivek Mohan <vivek@sig9.com>
 # All rights reserved.
 
-from input import *
-from inst import Inst
-import decode as dec
-import syn_intel as intel
+from .input import *
+from .inst import Inst
+from . import decode as dec
+from . import syn_intel as intel
 
-from operand import VENDOR_INTEL, VENDOR_AMD
+from .operand import VENDOR_INTEL, VENDOR_AMD
 
 class Pymsasid:
     def __init__(self, mode=None, source='',syntax=intel.intel_syntax,

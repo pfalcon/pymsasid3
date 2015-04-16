@@ -1,8 +1,8 @@
-from operand import O_NONE, P_none
-import syn_intel as intel
+from .operand import O_NONE, P_none
+from . import syn_intel as intel
 #hack MK
-from syn_intel import intel_operand_syntax
-#from syn_att import *
+from .syn_intel import intel_operand_syntax
+#from .syn_att import *
 
 operator_list_invalid = [ 'invalid']
 

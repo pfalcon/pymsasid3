@@ -5,7 +5,7 @@
 # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
 # -----------------------------------------------------------------------------
 
-from operand import *
+from .operand import *
 
 # -----------------------------------------------------------------------------
 # opr_cast() - Prints an operand cast.

@@ -5,13 +5,13 @@
 # Mainly rewrited from udis86 -- Vivek Mohan <vivek@sig9.com>
 # -----------------------------------------------------------------------------
 
-from common import DecodeException, VENDOR_INTEL, VENDOR_AMD
-from inst import Inst, Operand, Ptr, ie_invalid, ie_pause, ie_nop
+from .common import DecodeException, VENDOR_INTEL, VENDOR_AMD
+from .inst import Inst, Operand, Ptr, ie_invalid, ie_pause, ie_nop
 
 
 # this is intended: hundreds of constants used
-from itab import *
-from operand import *
+from .itab import *
+from .operand import *
 
 # Extracts instruction prefixes.
 def get_prefixes(u, inst):

@@ -2,8 +2,8 @@
 # Rewritten from udis86 -- Vivek Mohan <vivek@sig9.com>
 # All rights reserved.
 
-from operand import P_OSO, P_ASO, P_IMPADDR
-from common import DecodeException
+from .operand import P_OSO, P_ASO, P_IMPADDR
+from .common import DecodeException
 
 def intel_operand_cast(op):
     """Returns operand casts."""
