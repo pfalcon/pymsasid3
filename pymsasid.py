@@ -15,7 +15,7 @@ class Pymsasid:
         self.error = 0
         self.vendor = self.set_vendor(vendor)
         self.input = Input(hook, source)
-        self.entry_point = self.pc = long(self.input.hook.entry_point)
+        self.entry_point = self.pc = int(self.input.hook.entry_point)
         self.syntax = syntax
 
         if mode is None:

@@ -208,7 +208,7 @@ class Input:
         # Don't backup if there was an error    return r
         if not self.error:
             self.back()    
-        return long(r)
+        return int(r)
 
     def read(self, n):
         if self.error == 1:
