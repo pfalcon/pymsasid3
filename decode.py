@@ -541,10 +541,10 @@ def disasm_operands(u, inst):
     """Disassembles Operands."""
     # get type
     def get_mopt(x): return x.type
-    mopt = map(get_mopt, inst.itab_entry.operand)
+    mopt = list(map(get_mopt, inst.itab_entry.operand))
     # get size
     def get_mops(x): return x.size
-    mops = map(get_mops, inst.itab_entry.operand)
+    mops = list(map(get_mops, inst.itab_entry.operand))
 
     if mopt[2] != OP_NONE:
         inst.operand = [Operand(), Operand(), Operand()]
