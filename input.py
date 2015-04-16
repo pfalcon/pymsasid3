@@ -219,7 +219,7 @@ class Input:
         elif n == 8:
             return self.next()
         else:
-            n /= 2
+            n //= 2
             a = self.read(n)
             b = self.read(n)
             return a |(b << n)
