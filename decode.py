@@ -517,8 +517,8 @@ def decode_modrm(u, inst, op, s, rm_type, opreg, reg_size, reg_type):
     if op.offset in [8, 16, 32, 64]: 
         op.lval  = u.input.read(op.offset)
         bound = pow(2, op.offset - 1)
-        if op.lval > bound:
-            op.lval = -(((2 * bound) - op.lval) % bound)
+        if op.lval >= bound:
+            op.lval = -(2 * bound - op.lval)
 
     # resolve register encoded in reg field
     if opreg:
@@ -693,8 +693,8 @@ def disasm_operands(u, inst):
         decode_imm(u, inst, mops[0], inst.operand[0])
         # MK take care of signs
         bound = pow(2, inst.operand[0].size - 1)
-        if inst.operand[0].lval > bound:
-            inst.operand[0].lval = -(((2 * bound) - inst.operand[0].lval) % bound)
+        if inst.operand[0].lval >= bound:
+            inst.operand[0].lval = -(2 * bound - inst.operand[0].lval)
         inst.operand[0].type = 'OP_JIMM'
 
     # PR, I 
