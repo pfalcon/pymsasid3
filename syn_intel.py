@@ -55,7 +55,7 @@ def intel_operand_syntax(op):
             op_f = True
 
         if op.scale:
-            ret.append(str(op.scale))
+            ret.append('*' + str(op.scale))
 
         if op.offset in [8, 16, 32, 64]:
             if (op.lval < 0):
