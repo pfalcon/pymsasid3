@@ -12,13 +12,18 @@ GPR = {
         None,
     ],
 
-    8 :         [ # 8 bit GPRs 
+    8 :        [[ # 8 bit GPRs, non-REX
         'al',   'cl',   'dl',   'bl',
         'ah',   'ch',   'dh',   'bh',
-        'spl',  'bpl',  'sil',  'dil',
         'r8b',  'r9b',  'r10b', 'r11b',
         'r12b', 'r13b', 'r14b', 'r15b',
     ],
+                [ # 8 bit GPRs, with REX prefix
+        'al',   'cl',   'dl',   'bl',
+        'spl',  'bpl',  'sil',  'dil',
+        'r8b',  'r9b',  'r10b', 'r11b',
+        'r12b', 'r13b', 'r14b', 'r15b',
+    ]],
      
     16 :        [ # 16 bit GPRs
         'ax',   'cx',   'dx',   'bx',

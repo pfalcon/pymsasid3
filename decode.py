@@ -347,11 +347,9 @@ def decode_gpr(u, inst, s, rm):
         return GPR[16][rm]
     elif s ==  8:
         if u.dis_mode == 64 and inst.pfx.rex:
-            if rm >= 4:
-                return GPR[8][rm+4]
-            return GPR[8][rm]
+            return GPR[8][1][rm]
         else: 
-            return GPR[8][rm]
+            return GPR[8][0][rm]
     else:
         return None
 
@@ -620,7 +618,7 @@ def disasm_operands(u, inst):
     elif mopt[0] in [OP_AL, OP_CL, OP_DL, OP_BL,
                    OP_AH, OP_CH, OP_DH, OP_BH]:
         inst.operand[0].type = 'OP_REG'
-        inst.operand[0].base = GPR[8][mopt[0] - OP_AL]
+        inst.operand[0].base = GPR[8][0][mopt[0] - OP_AL]
         inst.operand[0].size = 8
 
         if mopt[1] == OP_I:
@@ -653,14 +651,8 @@ def disasm_operands(u, inst):
     elif mopt[0] in [OP_ALr8b, OP_CLr9b, OP_DLr10b, OP_BLr11b,
                    OP_AHr12b, OP_CHr13b, OP_DHr14b, OP_BHr15b]:
         gpr = (mopt[0] - OP_ALr8b +(REX_B(inst.pfx.rex) << 3))
-        if gpr in ['ah',	'ch',	'dh',	'bh',
-                   'spl',	'bpl',	'sil',	'dil',
-                   'r8b',	'r9b',	'r10b',	'r11b',
-                   'r12b',	'r13b',	'r14b',	'r15b',
-                   ] and inst.pfx.rex: 
-            gpr = gpr + 4
         inst.operand[0].type = 'OP_REG'
-        inst.operand[0].base = GPR[8][gpr]
+        inst.operand[0].base = GPR[8][inst.pfx.rex != 0][gpr]
         if mopt[1] == OP_I:
             decode_imm(u, inst, mops[1], inst.operand[1])
 
