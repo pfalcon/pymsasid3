@@ -161,9 +161,9 @@ def REX_B(r):
     return (0x1 & r) >> 0
 
 def REX_PFX_MASK(n):
-    return ((P_REXW(n) << 3) or
-            (P_REXR(n) << 2) or
-            (P_REXX(n) << 1) or
+    return ((P_REXW(n) << 3) |
+            (P_REXR(n) << 2) |
+            (P_REXX(n) << 1) |
             (P_REXB(n) << 0))
 
 # scable-index-base bits 
